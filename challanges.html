@@ -23,11 +23,31 @@
     </div>
   </div>
 
+  <!-- Debug Token Section -->
+  <div class="bg-secondary text-white py-2">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <h5>Debug Information</h5>
+          <div id="token-display" class="bg-dark p-2 rounded small" style="word-break: break-all; max-height: 100px; overflow-y: auto;">
+            Loading token information...
+          </div>
+          <button id="copy-token" class="btn btn-sm btn-primary mt-2">Copy Token</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="text-white py-5">
     <div class="container d-flex flex-column align-items-center text-center py-5">
       <p class="fw-lighter fs-5 mb-5" style="max-width: 800px;">
-        This section will come soon ...
+        Loading challenges...
+      </p>
     </div>
+  </div>
+
+  <div id="challenges-container" class="container py-3">
+    <!-- Challenges will be loaded here -->
   </div>
 
   <div id="footer"></div>
@@ -66,5 +86,67 @@
       })
       .catch(error => console.error('Error loading scripts:', error));
   </script>
+  
+  <!-- Token display script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const tokenDisplay = document.getElementById('token-display');
+      const copyButton = document.getElementById('copy-token');
+      
+      // Display token info
+      function updateTokenDisplay() {
+        const token = localStorage.getItem('jwtToken');
+        const username = localStorage.getItem('username');
+        
+        if (token) {
+          // Display token and basic info
+          tokenDisplay.innerHTML = `
+            <div><strong>Username:</strong> ${username || 'Not found'}</div>
+            <div><strong>Token:</strong> ${token}</div>
+          `;
+          
+          // Try to decode and display token payload
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const expDate = payload.exp ? new Date(payload.exp * 1000).toLocaleString() : 'Not found';
+            
+            tokenDisplay.innerHTML += `
+              <div class="mt-2"><strong>Expiration:</strong> ${expDate}</div>
+              <div><strong>Payload:</strong> <pre>${JSON.stringify(payload, null, 2)}</pre></div>
+            `;
+          } catch (error) {
+            tokenDisplay.innerHTML += `<div class="text-warning">Unable to decode token: ${error.message}</div>`;
+          }
+        } else {
+          tokenDisplay.innerHTML = '<div class="text-danger">No JWT token found in localStorage</div>';
+        }
+      }
+      
+      // Copy token to clipboard
+      if (copyButton) {
+        copyButton.addEventListener('click', function() {
+          const token = localStorage.getItem('jwtToken');
+          if (token) {
+            navigator.clipboard.writeText(token)
+              .then(() => {
+                alert('Token copied to clipboard');
+              })
+              .catch(err => {
+                console.error('Failed to copy token: ', err);
+              });
+          } else {
+            alert('No token to copy');
+          }
+        });
+      }
+      
+      // Update display when page loads
+      updateTokenDisplay();
+    });
+  </script>
+  
+  <!-- Authentication scripts -->
+  <script src="./js/auth.js"></script>
+  <script src="./js/challenge.js"></script>
 </body>
 </html>
