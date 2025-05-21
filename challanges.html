@@ -133,7 +133,7 @@
     document.addEventListener('DOMContentLoaded', function () {
       const challengesContainer = document.getElementById('challenges-container');
 
-      // Fetch challenges from the backend with Authorization header
+      // Fetch categories from the backend
       const token = localStorage.getItem('jwtToken');
       if (!token) {
         challengesContainer.innerHTML = `<p class="text-danger">No token found. Please log in.</p>`;
@@ -149,23 +149,23 @@
       })
         .then(response => {
           if (!response.ok) {
-            throw new Error('Failed to fetch challenges');
+            throw new Error('Failed to fetch categories');
           }
           return response.json();
         })
-        .then(challenges => {
-          challengesContainer.innerHTML = challenges.map(challenge => `
+        .then(categories => {
+          challengesContainer.innerHTML = categories.map(category => `
             <div class="card bg-transparent border border-white mb-4" style="width: 18rem;">
               <div class="card-body">
-                <h5 class="card-title">${challenge.title}</h5>
-                <p class="card-text">${challenge.description}</p>
-                <a href="${challenge.downloadUrl}" class="btn btn-dark">Download</a>
+                <h5 class="card-title">${category.name}</h5>
+                <p class="card-text">${category.summary}</p>
+                <a href="${category.fileUrl}" class="btn btn-dark" target="_blank">Learn More</a>
               </div>
             </div>
           `).join('');
         })
         .catch(error => {
-          challengesContainer.innerHTML = `<p class="text-danger">Error loading challenges: ${error.message}</p>`;
+          challengesContainer.innerHTML = `<p class="text-danger">Error loading categories: ${error.message}</p>`;
         });
     });
   </script>
