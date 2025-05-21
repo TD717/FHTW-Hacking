@@ -23,28 +23,7 @@
     </div>
   </div>
 
-  <!-- Debug Token Section -->
-  <div class="bg-secondary text-white py-2">
-    <div class="container">
-      <div class="row">
-        <div class="col">
-          <h5>Debug Information</h5>
-          <div id="token-display" class="bg-dark p-2 rounded small" style="word-break: break-all; max-height: 100px; overflow-y: auto;">
-            Loading token information...
-          </div>
-          <button id="copy-token" class="btn btn-sm btn-primary mt-2">Copy Token</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="text-white py-5">
-    <div class="container d-flex flex-column align-items-center text-center py-5">
-      <p class="fw-lighter fs-5 mb-5" style="max-width: 800px;">
-        Loading challenges...
-      </p>
-    </div>
-  </div>
 
   <div id="challenges-container" class="container py-3">
     <!-- Challenges will be loaded here -->
@@ -148,5 +127,47 @@
   <!-- Authentication scripts -->
   <script src="./js/auth.js"></script>
   <script src="./js/challenge.js"></script>
+
+  <!-- Challenges script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const challengesContainer = document.getElementById('challenges-container');
+
+      // Fetch challenges from the backend with Authorization header
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        challengesContainer.innerHTML = `<p class="text-danger">No token found. Please log in.</p>`;
+        return;
+      }
+
+      fetch('http://localhost:8080/api/categories', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch challenges');
+          }
+          return response.json();
+        })
+        .then(challenges => {
+          challengesContainer.innerHTML = challenges.map(challenge => `
+            <div class="card bg-transparent border border-white mb-4" style="width: 18rem;">
+              <div class="card-body">
+                <h5 class="card-title">${challenge.title}</h5>
+                <p class="card-text">${challenge.description}</p>
+                <a href="${challenge.downloadUrl}" class="btn btn-dark">Download</a>
+              </div>
+            </div>
+          `).join('');
+        })
+        .catch(error => {
+          challengesContainer.innerHTML = `<p class="text-danger">Error loading challenges: ${error.message}</p>`;
+        });
+    });
+  </script>
 </body>
 </html>
