@@ -224,5 +224,50 @@
       })
       .catch(error => console.error('Error loading scripts:', error));
   </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const lessonsContainer = document.querySelector('.row.g-4');
+
+      // Fetch categories from the backend
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        lessonsContainer.innerHTML = `<p class="text-danger">No token found. Please log in.</p>`;
+        return;
+      }
+
+      fetch('http://localhost:8080/api/categories', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch categories');
+          }
+          return response.json();
+        })
+        .then(categories => {
+          // Filter for Cryptography category
+          const cryptography = categories.find(category => category.id === 'crypto');
+
+          if (cryptography) {
+            lessonsContainer.innerHTML = `
+              <div class="col-12">
+                <h3>${cryptography.name}</h3>
+                <p>${cryptography.summary}</p>
+              </div>
+            `;
+          } else {
+            lessonsContainer.innerHTML = `<p class="text-warning">No data found for Cryptography.</p>`;
+          }
+        })
+        .catch(error => {
+          lessonsContainer.innerHTML = `<p class="text-danger">Error loading data: ${error.message}</p>`;
+        });
+    });
+  </script>
 </body>
 </html>
