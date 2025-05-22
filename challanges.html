@@ -159,7 +159,7 @@
               <div class="card-body">
                 <h5 class="card-title">${challenge.name}</h5>
                 <p class="card-text">${challenge.description}</p>
-                <a href="${challenge.fileUrl}" class="btn btn-dark" target="_blank">Download</a>
+                <button class="btn btn-dark" onclick="downloadFile('${challenge.id}')">Download</button>
               </div>
             </div>
           `).join('');
@@ -168,6 +168,40 @@
           challengesContainer.innerHTML = `<p class="text-danger">Error loading challenges: ${error.message}</p>`;
         });
     });
+
+    // Function to handle file download
+    async function downloadFile(fileID) {
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        alert('No token found. Please log in.');
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:8080/api/challenges/${fileID}/download`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `challenge-${fileID}.zip`; // Customize the file name
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+        } else {
+          alert('Failed to download file.');
+        }
+      } catch (error) {
+        alert(`Error downloading file: ${error.message}`);
+      }
+    }
   </script>
 </body>
 </html>
