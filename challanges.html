@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Home</title>
+  <link rel="stylesheet" href="https://unpkg.com/xterm/css/xterm.css">
+  <script src="https://unpkg.com/xterm/lib/xterm.js"></script>
+
   <script>
     fetch('./include/links.html')
       .then(response => response.text())
@@ -203,5 +206,42 @@
       }
     }
   </script>
+  <div class="container py-3">
+  <button id="spawn-terminal-btn" class="btn btn-primary mb-3">Spawn Terminal</button>
+  <div id="terminal-container" style="height: 400px; background-color: black;"></div>
+</div>
+<script>
+  document.getElementById('spawn-terminal-btn').addEventListener('click', function () {
+    const term = new Terminal();
+    const terminalContainer = document.getElementById('terminal-container');
+    terminalContainer.innerHTML = ''; // clear if needed
+    term.open(terminalContainer);
+    term.focus();
+
+    const socket = new WebSocket('ws://localhost:3001');
+
+    socket.onopen = () => {
+      console.log('[WS] Terminal connected');
+    };
+
+    socket.onmessage = (e) => {
+      term.write(e.data);
+    };
+
+    term.onData((data) => {
+      socket.send(data);
+    });
+
+    socket.onclose = () => {
+      term.write('\r\n[Terminal closed]');
+    };
+
+    socket.onerror = (err) => {
+      term.write('\r\n[Connection error]');
+      console.error(err);
+    };
+  });
+</script>
+
 </body>
 </html>
